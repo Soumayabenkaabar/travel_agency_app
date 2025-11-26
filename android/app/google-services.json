@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "33185060884",
+    "firebase_url": "https://interfaces-43532-default-rtdb.firebaseio.com",
+    "project_id": "interfaces-43532",
+    "storage_bucket": "interfaces-43532.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33185060884:android:69e9aa2ff2c300b9d82f01",
+        "android_client_info": {
+          "package_name": "com.example.flutter_application_2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "33185060884-u8laoa5qj0gukk8drse9rdk57rjea2e2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW7paw4sPIPDIA044mxUQsGBw9mtNVdgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "33185060884-u8laoa5qj0gukk8drse9rdk57rjea2e2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33185060884:android:92461a1cb051d106d82f01",
+        "android_client_info": {
+          "package_name": "com.example.travel_agency_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "33185060884-u8laoa5qj0gukk8drse9rdk57rjea2e2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDW7paw4sPIPDIA044mxUQsGBw9mtNVdgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "33185060884-u8laoa5qj0gukk8drse9rdk57rjea2e2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

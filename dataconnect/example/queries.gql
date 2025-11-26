@@ -1,0 +1,45 @@
+mutation AddToWatchHistory($movieId: UUID!, $watchDate: Date!, $location: String) @auth(level: USER) {
+  watch_insert(data: {
+    movieId: $movieId,
+    userId_expr: "auth.uid",
+    watchDate: $watchDate,
+    location: $location
+  })
+}
+
+query GetMoviesWatchedByUser @auth(level: USER) {
+  watches(where: {userId: {eq_expr: "auth.uid"}}) {
+    movie {
+      id
+      title
+      year
+      genres
+      summary
+    }
+    watchDate
+    location
+  }
+}
+
+mutation CreateNewList($name: String!, $description: String, $public: Boolean!) @auth(level: USER) {
+  list_insert(data: {
+    userId_expr: "auth.uid",
+    name: $name,
+    description: $description,
+    public: $public,
+    createdAt_expr: "request.time",
+    updatedAt_expr: "request.time"
+  })
+}
+
+query GetPublicLists @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  lists(where: {public: {eq: true}}) {
+    id
+    name
+    description
+    user {
+      id
+      displayName
+    }
+  }
+}
