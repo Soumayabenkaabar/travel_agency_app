@@ -19,31 +19,34 @@ class _OfferDetailsScreenState extends State<OfferDetailsScreen> {
   final TextEditingController _commentController = TextEditingController();
   int _rating = 5;
 
+  // -------------------------------------------------------------------------
+  // ADD REVIEW FIXÉ
+  // -------------------------------------------------------------------------
   Future<void> _addReview() async {
     if (_nameController.text.isEmpty || _commentController.text.isEmpty) return;
-final user = FirebaseAuth.instance.currentUser;
-if (user == null) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("Veuillez vous connecter pour laisser un avis.")),
-  );
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const LoginScreen()),
-  );
-  return;
-}
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Veuillez vous connecter pour laisser un avis.")),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+      return;
+    }
 
     try {
-      await FirebaseFirestore.instance
-          .collection('offers')
-          .doc(widget.offer['id']) // ✅ ici on récupère l’ID de l’offre
-          .collection('reviews')
-          .add({
+      // 🔥 FIX IMPORTANT : convertir l'id en String
+      await FirebaseFirestore.instance.collection('reviews').add({
+        'offerId': widget.offer['id'].toString(),
+        'userId': user.uid,
         'userName': _nameController.text,
         'comment': _commentController.text,
         'rating': _rating,
-        'createdAt': Timestamp.now(),
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       _nameController.clear();
@@ -53,7 +56,7 @@ if (user == null) {
         const SnackBar(content: Text('Avis ajouté avec succès !')),
       );
 
-      setState(() {}); // recharger les avis
+      setState(() {});
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e')),
@@ -61,6 +64,9 @@ if (user == null) {
     }
   }
 
+  // -------------------------------------------------------------------------
+  // UI
+  // -------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final offer = widget.offer;
@@ -73,10 +79,7 @@ if (user == null) {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color(0xFF6A1B9A),
-                Color(0xFF8A2BE2),
-              ],
+              colors: [Color(0xFF6A1B9A), Color(0xFF8A2BE2)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -88,8 +91,7 @@ if (user == null) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Détails de l'offre ---
-            // Image principale
+            // Image
             if (offer['imageUrl'] != null && offer['imageUrl'].toString().isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(15),
@@ -103,7 +105,6 @@ if (user == null) {
             else
               Container(
                 height: 200,
-                width: double.infinity,
                 color: Colors.grey[300],
                 child: const Icon(Icons.image_not_supported, size: 80),
               ),
@@ -115,83 +116,72 @@ if (user == null) {
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
-              '${offer['destination']} - ${offer['price']} \DT',
+              '${offer['destination']} - ${offer['price']} DT',
               style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
             const SizedBox(height: 10),
             Text(offer['description'] ?? ''),
+
             const SizedBox(height: 20),
-Center(
-  child: SizedBox(
-    width: double.infinity, // ✔ plein largeur comme "Envoyer mon avis"
-    child: ElevatedButton.icon(
-      onPressed: () {
-         final user = FirebaseAuth.instance.currentUser;
 
-      if (user == null) {
-        // Not logged → redirect to login
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Veuillez vous connecter pour réserver.")),
-        );
+            // -----------------------------------------------------------------
+            // BUTTON RÉSERVATION
+            // -----------------------------------------------------------------
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  final user = FirebaseAuth.instance.currentUser;
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-        );
-        return;
-      }
+                  if (user == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Veuillez vous connecter pour réserver.")),
+                    );
 
-      // Logged → go to booking
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BookingScreen(offer: offer),
-          ),
-        );
-      },
-      icon: const Icon(
-        Icons.shopping_cart_checkout,
-        color: Colors.black, 
-      ),
-      label: const Text(
-        'Réserver maintenant',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF6A1B9A), 
-        padding: const EdgeInsets.symmetric(
-          vertical: 14,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12), 
-        ),
-        elevation: 4,
-      ),
-    ),
-  ),
-),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    );
+                    return;
+                  }
 
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BookingScreen(offer: offer),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.shopping_cart_checkout, color: Colors.black),
+                label: const Text(
+                  'Réserver maintenant',
+                  style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A1B9A),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
 
+            const SizedBox(height: 20),
 
-
-
-
-
-            // --- Liste des avis ---
-            const Text("Avis des utilisateurs",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            // -----------------------------------------------------------------
+            // LISTE DES AVIS
+            // -----------------------------------------------------------------
+            const Text(
+              "Avis des utilisateurs",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 10),
 
             StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('offers')
-                  .doc(offer['id'])
                   .collection('reviews')
-                  .orderBy('createdAt', descending: true)
+                  .where('offerId', isEqualTo: widget.offer['id'].toString()) // FIX OFFICIEL
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -219,7 +209,6 @@ Center(
                               children: List.generate(
                                 (data['rating'] ?? 0),
                                 (index) => const Icon(Icons.star, color: Colors.amber, size: 16),
-
                               ),
                             ),
                           ],
@@ -234,122 +223,117 @@ Center(
             const SizedBox(height: 20),
             const Divider(),
             const SizedBox(height: 10),
-// --- Formulaire stylé d'ajout d'avis ---
-const SizedBox(height: 30),
-Container(
-  padding: const EdgeInsets.all(18),
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(16),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.08),
-        blurRadius: 12,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        "Ajouter un avis",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFF6A1B9A),
-        ),
-      ),
 
-      const SizedBox(height: 20),
+            // -----------------------------------------------------------------
+            // FORMULAIRE AJOUT AVIS
+            // -----------------------------------------------------------------
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Ajouter un avis",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF6A1B9A),
+                    ),
+                  ),
 
-      // --- Champ Nom ---
-      TextField(
-        controller: _nameController,
-        decoration: InputDecoration(
-          labelText: "Votre nom",
-          prefixIcon: const Icon(Icons.person, color: Color(0xFF6A1B9A)),
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
+                  const SizedBox(height: 20),
 
-      const SizedBox(height: 15),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: "Votre nom",
+                      prefixIcon: const Icon(Icons.person, color: Color(0xFF6A1B9A)),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
 
-      // --- Champ Commentaire ---
-      TextField(
-        controller: _commentController,
-        maxLines: 3,
-        decoration: InputDecoration(
-          labelText: "Votre commentaire",
-          prefixIcon: const Icon(Icons.message, color: Color(0xFF6A1B9A)),
-          filled: true,
-          fillColor: Colors.grey.shade100,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
+                  const SizedBox(height: 15),
 
-      const SizedBox(height: 20),
+                  TextField(
+                    controller: _commentController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: "Votre commentaire",
+                      prefixIcon: const Icon(Icons.message, color: Color(0xFF6A1B9A)),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
 
-      // --- Sélection des étoiles ---
-      const Text(
-        "Votre note",
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-      ),
-      const SizedBox(height: 10),
+                  const SizedBox(height: 20),
 
-      Row(
-        children: List.generate(5, (index) {
-          return GestureDetector(
-            onTap: () {
-              setState(() => _rating = index + 1);
-            },
-            child: Icon(
-              Icons.star,
-              size: 32,
-              color: (index < _rating) ? Colors.amber : Colors.grey.shade400,
+                  const Text("Votre note",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: List.generate(5, (index) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _rating = index + 1);
+                        },
+                        child: Icon(
+                          Icons.star,
+                          size: 32,
+                          color: (index < _rating) ? Colors.amber : Colors.grey.shade400,
+                        ),
+                      );
+                    }),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _addReview,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: const Color(0xFF6A1B9A),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Envoyer mon avis",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        }),
-      ),
-
-      const SizedBox(height: 25),
-
-      // --- Bouton Envoyer ---
-      SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _addReview,
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            backgroundColor: const Color(0xFF6A1B9A),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 4,
-          ),
-          child: const Text(
-            "Envoyer mon avis",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.black),
-          ),
-        ),
-      ),
-    ],
-  ),
-),
-
           ],
         ),
       ),
       drawer: const AppDrawer(),
-
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:travel_agency_app/screens/admin/admin_dashboard_screen.dart';
+import 'package:travel_agency_app/screens/auth/login_screen.dart';
 import 'package:travel_agency_app/screens/offer_details_screen.dart';
 import 'package:travel_agency_app/widgets/app_drawer.dart';
 
@@ -122,21 +123,33 @@ class _OffersScreenState extends State<OffersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Offres de voyage'),
-        backgroundColor: Colors.deepPurple,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.admin_panel_settings, color: Colors.white),
+  title: const Text('Offres de voyage'),
+  backgroundColor: Colors.deepPurple,
+  actions: [
+    Builder(
+      builder: (context) {
+        final user = FirebaseAuth.instance.currentUser;
+        // Si aucun utilisateur connecté → afficher l'icône
+        if (user == null) {
+          return IconButton(
+            icon: const Icon(Icons.person, color: Colors.white),
             tooltip: 'Espace admin',
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
               );
             },
-          ),
-        ],
-      ),
+          );
+        } else {
+          // Sinon rien / inactif
+          return const SizedBox.shrink(); // espace vide
+        }
+      },
+    ),
+  ],
+),
+
 
       drawer: const AppDrawer(),
 

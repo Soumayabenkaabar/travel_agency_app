@@ -98,41 +98,7 @@ class AppDrawer extends StatelessWidget {
             const Spacer(),
 
             // 🚪 Déconnexion / Connexion
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: GestureDetector(
-                onTap: () async {
-                  Navigator.pop(context);
-
-                  if (user != null) {
-                    // 🔥 Déconnexion réelle Firebase
-                    await FirebaseAuth.instance.signOut();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Déconnecté !")),
-                    );
-                  } else {
-                    // 👉 Rediriger vers Login
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  }
-                },
-                child: Row(
-                  children: [
-                    Icon(
-                      user != null ? Icons.logout : Icons.login,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      user != null ? "Déconnexion" : "Se connecter",
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            
 
             const SizedBox(height: 20),
           ],
