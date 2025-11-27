@@ -125,16 +125,16 @@ class ReservationsHistoryScreen extends StatelessWidget {
   // ==== Couleur du badge ====
   Color _statusBg(String status) {
     switch (status) {
-      case "accepter": return Colors.green.withOpacity(0.2);
-      case "refuser": return Colors.red.withOpacity(0.2);
+      case "Validée": return Colors.green.withOpacity(0.2);
+      case "Refusée": return Colors.red.withOpacity(0.2);
       default:        return Colors.orange.withOpacity(0.2);
     }
   }
 
   Color _statusText(String status) {
     switch (status) {
-      case "accepter": return Colors.green;
-      case "refuser": return Colors.red;
+      case "Validée": return Colors.green;
+      case "Refusée": return Colors.red;
       default:        return Colors.orange;
     }
   }

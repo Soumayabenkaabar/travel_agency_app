@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 class AdminReservationsScreen extends StatelessWidget {
   const AdminReservationsScreen({super.key});
 
-  Future<void> _updateStatus(String offerId, String resId, String status) async {
+  Future<void> _updateStatus(String resId, String status) async {
     await FirebaseFirestore.instance
-        .collection('offers')
-        .doc(offerId)
         .collection('reservations')
         .doc(resId)
         .update({'status': status});
@@ -17,52 +15,71 @@ class AdminReservationsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Réservations"),
+        title: const Text("Liste des réservations"),
         backgroundColor: Colors.deepPurple,
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('offers').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('reservations')
+            .orderBy('date', descending: true)
+            .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-          final offers = snapshot.data!.docs;
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          return ListView(
-            children: offers.map((offer) {
-              return StreamBuilder<QuerySnapshot>(
-                stream: offer.reference.collection('reservations').snapshots(),
-                builder: (context, resSnap) {
-                  if (!resSnap.hasData) return const SizedBox();
-                  final reservations = resSnap.data!.docs;
+          final reservations = snapshot.data!.docs;
 
-                  return ExpansionTile(
-                    title: Text(offer['title'] ?? 'Offre sans titre'),
-                    children: reservations.map((res) {
-                      final data = res.data() as Map<String, dynamic>;
-                      final status = data['status'] ?? 'En attente';
+          if (reservations.isEmpty) {
+            return const Center(
+              child: Text("Aucune réservation trouvée."),
+            );
+          }
 
-                      return ListTile(
-                        title: Text("${data['name']} (${data['people']} pers)"),
-                        subtitle: Text(
-                            "Date : ${data['date'].toDate().day}/${data['date'].toDate().month}/${data['date'].toDate().year}\nStatut : $status"),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.check, color: Colors.green),
-                              onPressed: () => _updateStatus(offer.id, res.id, 'Validée'),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () => _updateStatus(offer.id, res.id, 'Refusée'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  );
-                },
+          return ListView.builder(
+            itemCount: reservations.length,
+            itemBuilder: (context, index) {
+              final res = reservations[index];
+              final data = res.data() as Map<String, dynamic>;
+
+              final status = data['status'] ?? 'En attente';
+              final date = data['date']?.toDate();
+
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                child: ListTile(
+title: Text(
+  "${data['userEmail']} (${data['people']} pers)",
+  style: TextStyle(
+    fontSize: 13,           // taille de la police
+    fontWeight: FontWeight.bold, // gras
+    color: Colors.deepPurple,   // couleur
+    fontStyle: FontStyle.italic, // italique (optionnel)
+  ),
+),
+                  subtitle: Text(
+                    "Destination : ${data['destination'] ?? '---'}\n"
+                    "Date : ${date != null ? "${date.day}/${date.month}/${date.year}" : '---'}\n"
+                    "Statut : $status",
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        onPressed: () =>
+                            _updateStatus(res.id, 'Validée'),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () =>
+                            _updateStatus(res.id, 'Refusée'),
+                      ),
+                    ],
+                  ),
+                ),
               );
-            }).toList(),
+            },
           );
         },
       ),
