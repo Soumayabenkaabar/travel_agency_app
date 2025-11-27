@@ -21,9 +21,9 @@ class _OffersScreenState extends State<OffersScreen> {
 
   // Images pour la publicité / promotion
   final List<String> pubsImages = [
-    "assets/images/a1.jpg",
-    "assets/images/a2.jpg",
-    "assets/images/a3.jpg",
+    "assets/images/A3B.webp",
+    "assets/images/A4B.jpg",
+    "assets/images/A2B.jpg",
     
   ];
 
@@ -97,20 +97,35 @@ class _OffersScreenState extends State<OffersScreen> {
 
                 const SizedBox(height: 25),
 
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      minPrice = minCtrl.text.isNotEmpty
-                          ? double.tryParse(minCtrl.text)
-                          : null;
-                      maxPrice = maxCtrl.text.isNotEmpty
-                          ? double.tryParse(maxCtrl.text)
-                          : null;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Appliquer les filtres"),
-                ),
+              ElevatedButton(
+  onPressed: () {
+    setState(() {
+      minPrice = minCtrl.text.isNotEmpty
+          ? double.tryParse(minCtrl.text)
+          : null;
+      maxPrice = maxCtrl.text.isNotEmpty
+          ? double.tryParse(maxCtrl.text)
+          : null;
+    });
+    Navigator.pop(context);
+  },
+
+
+
+  style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.deepPurple,
+    foregroundColor: Colors.white,  // couleur du texte
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+    shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+  ),
+  child: const Text(
+    "Appliquer les filtres",
+    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  ),
+              ),
+
               ],
             ),
           );
@@ -194,27 +209,29 @@ class _OffersScreenState extends State<OffersScreen> {
           const SizedBox(height: 12),
 
           // 🟣 CARROUSEL PUBLICITÉ
-          CarouselSlider(
-            items: pubsImages.map((img) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
-                  image: DecorationImage(
-                    image: AssetImage(img),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              );
-            }).toList(),
-            options: CarouselOptions(
-              height: 160,
-              autoPlay: true,
-              autoPlayInterval: const Duration(seconds: 3),
-              enlargeCenterPage: true,
-              viewportFraction: 0.85,
-            ),
-          ),
+  CarouselSlider(
+  items: pubsImages.map((img) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        color: Colors.deepPurple, // Fond pour éviter les zones vides
+        child: Image.asset(
+          img,
+          fit: BoxFit.contain, // ✔ Affiche l’image complète
+          width: double.infinity,
+        ),
+      ),
+    );
+  }).toList(),
+  options: CarouselOptions(
+    height: 160,
+    autoPlay: true,
+    autoPlayInterval: const Duration(seconds: 3),
+    enlargeCenterPage: true,
+    viewportFraction: 0.85,
+  ),
+),
+
 
           const SizedBox(height: 15),
 
@@ -263,126 +280,150 @@ class _OffersScreenState extends State<OffersScreen> {
                       : b["price"].compareTo(a["price"]));
                 }
 
-                return ListView.builder(
-                  itemCount: offers.length,
-                  itemBuilder: (context, index) {
-                    final offer = offers[index];
+        return ListView.builder(
+  physics: const BouncingScrollPhysics(),
+  itemCount: offers.length,
+  itemBuilder: (context, index) {
+    final offer = offers[index];
 
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.12),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            width: constraints.maxWidth,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // IMAGE
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(18),
+                    topRight: Radius.circular(18),
+                  ),
+                  child: offer["imageUrl"] != null
+                      ? Image.network(
+                          offer["imageUrl"],
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.contain,
+                        )
+                      : Container(
+                          height: 170,
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: Icon(Icons.image_not_supported, size: 50),
                           ),
-                        ],
+                        ),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // TITRE
+                      Text(
+                        offer["title"],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                      const SizedBox(height: 5),
+
+                      // DESTINATION
+                      Row(
                         children: [
-                          ClipRRect(
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(18),
-                              topRight: Radius.circular(18),
-                            ),
-                            child: offer["imageUrl"] != null
-                                ? Image.network(
-                                    offer["imageUrl"],
-                                    height: 180,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    height: 180,
-                                    color: Colors.grey[300],
-                                    child: const Center(
-                                      child:
-                                          Icon(Icons.image_not_supported, size: 60),
-                                    ),
-                                  ),
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  offer["title"],
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-
-                                Row(
-                                  children: [
-                                    const Icon(Icons.location_on,
-                                        color: Colors.deepPurple, size: 18),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      offer["destination"],
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 10),
-
-                                Text(
-                                  "${offer["price"]} DT",
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 10),
-
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              OfferDetailsScreen(offer: offer),
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.deepPurple,
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      "Voir détails",
-                                      style: TextStyle(
-                                          fontSize: 16, color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const Icon(Icons.location_on,
+                              color: Colors.deepPurple, size: 18),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              offer["destination"],
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.black54,
+                                fontSize: 15,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  },
-                );
+
+                      const SizedBox(height: 12),
+
+                      // PRIX
+                      Text(
+                        "${offer["price"]} DT",
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+
+                      // BOUTON
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    OfferDetailsScreen(offer: offer),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text(
+                            "Voir détails",
+                            style: TextStyle(fontSize: 16,
+                                  color: Colors.white,           // 🔥 Texte plus clair
+      fontWeight: FontWeight.bold,   // 🔥 Texte plus visible
+      letterSpacing: 0.8,            
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  },
+);
+
+            
               },
             ),
           ),

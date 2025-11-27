@@ -20,59 +20,51 @@ class _BookingScreenState extends State<BookingScreen> {
   // ===========================
   //     RESERVER L'OFFRE
   // ===========================
-  Future<void> _bookOffer() async {
-    final user = FirebaseAuth.instance.currentUser;
+Future<void> _bookOffer() async {
+  final user = FirebaseAuth.instance.currentUser;
 
-    // 🔴 REFUSER si utilisateur non connecté
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Veuillez vous connecter pour réserver."),
-        ),
-      );
-      return;
-    }
-
-    if (!_formKey.currentState!.validate() || _selectedDate == null) return;
-
-    try {
-      final reservationData = {
-        "uid": user.uid,
-        "userEmail": user.email,
-        "people": int.parse(_peopleController.text),
-        "date": _selectedDate,
-        "offerId": widget.offer["id"],
-        "destination": widget.offer["destination"],
-        "price": widget.offer["price"],
-        "imageUrl": widget.offer["image"],
-        "status": "en attente",
-        "createdAt": Timestamp.now(),
-      };
-
-      // 1️⃣ Enregistrer dans l'offre → sous-collection
-      await FirebaseFirestore.instance
-          .collection('offers')
-          .doc(widget.offer['id'])
-          .collection('reservations')
-          .add(reservationData);
-
-      // 2️⃣ Enregistrer dans la collection globale “reservations”
-      await FirebaseFirestore.instance
-          .collection('reservations')
-          .add(reservationData);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ Réservation effectuée avec succès !')),
-      );
-
-      Navigator.pop(context);
-
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
-      );
-    }
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Veuillez vous connecter pour réserver.")),
+    );
+    return;
   }
+
+  if (!_formKey.currentState!.validate() || _selectedDate == null) return;
+
+  try {
+    final reservationData = {
+      "uid": user.uid,
+      "userEmail": user.email,
+      "people": int.parse(_peopleController.text),
+      "date": Timestamp.fromDate(_selectedDate!),  // <<< CORRECT
+      "offerId": widget.offer["id"],
+      "destination": widget.offer["destination"],
+      "price": widget.offer["price"],
+      "imageUrl": widget.offer["image"],
+      "status": "en attente",
+      "createdAt": Timestamp.now(), // <<< NECESSAIRE
+    };
+
+  
+
+    // 2️⃣ Enregistrer dans la collection globale
+    await FirebaseFirestore.instance
+        .collection("reservations")
+        .add(reservationData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('✅ Réservation enregistrée !')),
+    );
+
+    Navigator.pop(context);
+
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erreur : $e')),
+    );
+  }
+}
 
   // ===========================
   //     SELECTEUR DE DATE
@@ -130,7 +122,7 @@ class _BookingScreenState extends State<BookingScreen> {
               
               // === Info de l'offre ===
               Text(
-                "${offer['destination']} - ${offer['price']} DT",
+                "${offer['title']} - ${offer['price']} DT",
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),

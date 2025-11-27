@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
 import '../widgets/app_drawer.dart';
 
 class ReservationsHistoryScreen extends StatelessWidget {
@@ -11,7 +10,7 @@ class ReservationsHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    // 🔴 Si utilisateur non connecté
+    // ==== Si utilisateur non connecté ====
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
@@ -23,7 +22,6 @@ class ReservationsHistoryScreen extends StatelessWidget {
           child: Text(
             "Veuillez vous connecter pour voir vos réservations.",
             style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
           ),
         ),
       );
@@ -43,6 +41,7 @@ class ReservationsHistoryScreen extends StatelessWidget {
             .snapshots(),
 
         builder: (context, snapshot) {
+          
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -63,7 +62,6 @@ class ReservationsHistoryScreen extends StatelessWidget {
             itemCount: history.length,
             itemBuilder: (context, index) {
               final data = history[index].data() as Map<String, dynamic>;
-              final date = data['date']?.toDate();
 
               return Card(
                 elevation: 4,
@@ -73,12 +71,12 @@ class ReservationsHistoryScreen extends StatelessWidget {
                 ),
 
                 child: ListTile(
-                  contentPadding: const EdgeInsets.all(10),
+                  contentPadding: const EdgeInsets.all(12),
 
-                  leading:  Text(
+                  title: Text(
                     data['destination'] ?? "Destination inconnue",
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -86,27 +84,33 @@ class ReservationsHistoryScreen extends StatelessWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 4),
-                      Text("Personnes : ${data['people']}"),
-                      Text("Prix : ${data['price']} DT"),
-
-                      if (date != null)
-                        Text("Date : ${date.day}/${date.month}/${date.year}"),
-
                       const SizedBox(height: 6),
+                      Text("Personnes : ${data['people'] ?? '---'}"),
+                      Text("Prix : ${data['price'] ?? '--'} DT"),
 
-                      // 🔵 Badge statut
+                      if (data['date'] != null)
+                        Text(
+                          "Séjour : ${data['date'].toDate().day}/${data['date'].toDate().month}/${data['date'].toDate().year}",
+                        ),
+
+                      if (data['createdAt'] != null)
+                        Text(
+                          "Réservé le : ${data['createdAt'].toDate().day}/${data['createdAt'].toDate().month}/${data['createdAt'].toDate().year}",
+                        ),
+
+                      const SizedBox(height: 8),
+
                       Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 4, horizontal: 8),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
-                          color: _statusBg(data['status']),
+                          color: _statusBg(data['status'] ?? "En attente"),
                         ),
                         child: Text(
-                          "Statut : ${data['status']}",
+                          "Statut : ${data['status'] ?? "En attente"}",
                           style: TextStyle(
-                            color: _statusText(data['status']),
+                            color: _statusText(data['status'] ?? "En attente"),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -125,17 +129,23 @@ class ReservationsHistoryScreen extends StatelessWidget {
   // ==== Couleur du badge ====
   Color _statusBg(String status) {
     switch (status) {
-      case "Validée": return Colors.green.withOpacity(0.2);
-      case "Refusée": return Colors.red.withOpacity(0.2);
-      default:        return Colors.orange.withOpacity(0.2);
+      case "Validée":
+        return Colors.green.withOpacity(0.2);
+      case "Refusée":
+        return Colors.red.withOpacity(0.2);
+      default:
+        return Colors.orange.withOpacity(0.2);
     }
   }
 
   Color _statusText(String status) {
     switch (status) {
-      case "Validée": return Colors.green;
-      case "Refusée": return Colors.red;
-      default:        return Colors.orange;
+      case "Validée":
+        return Colors.green;
+      case "Refusée":
+        return Colors.red;
+      default:
+        return Colors.orange;
     }
   }
 }
